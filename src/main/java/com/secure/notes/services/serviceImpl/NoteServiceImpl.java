@@ -39,8 +39,7 @@ public class NoteServiceImpl implements NoteService {
 
     @Override
     public List<Note> getNotesForUser(String username) {
-        List<Note> personalNotes = noteRepository
+        return noteRepository
                 .findByOwnerUsername(username);
-        return personalNotes;
     }
 }

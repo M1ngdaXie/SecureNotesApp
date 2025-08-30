@@ -1,5 +1,6 @@
 package com.secure.notes.security;
 
+import com.secure.notes.config.OAuth2LoginSuccessHandler;
 import com.secure.notes.models.AppRole;
 import com.secure.notes.models.Role;
 import com.secure.notes.models.User;
@@ -7,11 +8,11 @@ import com.secure.notes.repositories.RoleRepository;
 import com.secure.notes.repositories.UserRepository;
 import com.secure.notes.security.jwt.AuthEntryPointJwt;
 import com.secure.notes.security.jwt.AuthTokenFilter;
-import jakarta.servlet.Filter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -36,6 +37,9 @@ import static org.springframework.security.config.Customizer.withDefaults;
         jsr250Enabled = true)
 public class SecurityConfig {
     @Autowired
+    @Lazy
+    OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
+    @Autowired
     private AuthEntryPointJwt unauthorizedHandler;
 
     @Bean
@@ -58,7 +62,11 @@ public class SecurityConfig {
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .requestMatchers("/api/csrf-token").permitAll()
                 .requestMatchers("/api/auth/public/**").permitAll()
-                .anyRequest().authenticated());
+                        .requestMatchers("/oauth2/**").permitAll()
+                .anyRequest().authenticated())
+                .oauth2Login(oauth2 -> {
+                    oauth2.successHandler(oAuth2LoginSuccessHandler);
+                });
 
         // Rest of your configuration
         http.exceptionHandling(exception ->
